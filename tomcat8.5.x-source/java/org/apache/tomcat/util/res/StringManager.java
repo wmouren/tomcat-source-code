@@ -168,6 +168,9 @@ public class StringManager {
             value = key;
         }
 
+        /**
+         * 解决控制台日志输出乱码问题
+         */
         try {
             value = new String(value.getBytes("ISO-8859-1"), "UTF-8");
         } catch (UnsupportedEncodingException e) {

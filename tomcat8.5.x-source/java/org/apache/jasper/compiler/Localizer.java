@@ -61,7 +61,9 @@ public class Localizer {
         } catch (MissingResourceException e) {
         }
 
-
+        /**
+         * 解决控制台日志输出乱码问题
+         */
         try {
             errMsg = new String(errMsg.getBytes("ISO-8859-1"), "UTF-8");
         } catch (UnsupportedEncodingException e) {
