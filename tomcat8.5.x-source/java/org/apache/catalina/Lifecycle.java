@@ -80,6 +80,7 @@ package org.apache.catalina;
  *
  * @author Craig R. McClanahan
  */
+// 生命周期接口 包含生命周期的监听器
 public interface Lifecycle {
 
 

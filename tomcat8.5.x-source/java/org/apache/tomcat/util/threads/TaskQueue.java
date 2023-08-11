@@ -64,6 +64,7 @@ public class TaskQueue extends LinkedBlockingQueue<Runnable> {
         return super.offer(o,timeout,unit); //forces the item onto the queue, to be used if the task is rejected
     }
 
+    // 核心逻辑
     @Override
     public boolean offer(Runnable o) {
       //we can't do any checks

@@ -16,15 +16,11 @@
  */
 package org.apache.tomcat.util.threads;
 
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.RejectedExecutionException;
-import java.util.concurrent.RejectedExecutionHandler;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.TimeUnit;
+import org.apache.tomcat.util.res.StringManager;
+
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
-
-import org.apache.tomcat.util.res.StringManager;
 
 /**
  * Same as a java.util.concurrent.ThreadPoolExecutor but implements a much more efficient
@@ -33,6 +29,7 @@ import org.apache.tomcat.util.res.StringManager;
  * and that one will always throw a RejectedExecutionException
  *
  */
+// 为了满足 I/O 密集型场景重写 ThreadPoolExecutor 配合 TaskQueue#offer 方法
 public class ThreadPoolExecutor extends java.util.concurrent.ThreadPoolExecutor {
     /**
      * The string manager for this package.
@@ -161,6 +158,7 @@ public class ThreadPoolExecutor extends java.util.concurrent.ThreadPoolExecutor 
      * accepted for execution - the queue is full
      * @throws NullPointerException if command or unit is null
      */
+    // 核心逻辑
     public void execute(Runnable command, long timeout, TimeUnit unit) {
         submittedCount.incrementAndGet();
         try {
@@ -169,6 +167,7 @@ public class ThreadPoolExecutor extends java.util.concurrent.ThreadPoolExecutor 
             if (super.getQueue() instanceof TaskQueue) {
                 final TaskQueue queue = (TaskQueue)super.getQueue();
                 try {
+                    // 任务被线程池拒绝再重试一次
                     if (!queue.force(command, timeout, unit)) {
                         submittedCount.decrementAndGet();
                         throw new RejectedExecutionException("Queue capacity is full.");

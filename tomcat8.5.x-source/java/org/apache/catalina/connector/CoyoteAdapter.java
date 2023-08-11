@@ -16,19 +16,6 @@
  */
 package org.apache.catalina.connector;
 
-import java.io.IOException;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.util.EnumSet;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import javax.servlet.ReadListener;
-import javax.servlet.RequestDispatcher;
-import javax.servlet.ServletException;
-import javax.servlet.SessionTrackingMode;
-import javax.servlet.WriteListener;
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.catalina.Authenticator;
 import org.apache.catalina.Context;
 import org.apache.catalina.Host;
@@ -52,6 +39,14 @@ import org.apache.tomcat.util.http.ServerCookies;
 import org.apache.tomcat.util.net.SSLSupport;
 import org.apache.tomcat.util.net.SocketEvent;
 import org.apache.tomcat.util.res.StringManager;
+
+import javax.servlet.*;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.util.EnumSet;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 
 /**
@@ -340,6 +335,7 @@ public class CoyoteAdapter implements Adapter {
                 request.setAsyncSupported(
                         connector.getService().getContainer().getPipeline().isAsyncSupported());
                 // Calling the container
+                // 调用容器的 Pipeline 执行请求
                 connector.getService().getContainer().getPipeline().getFirst().invoke(
                         request, response);
             }

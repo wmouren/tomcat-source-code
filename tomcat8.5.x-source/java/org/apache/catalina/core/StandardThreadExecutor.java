@@ -17,9 +17,6 @@
 
 package org.apache.catalina.core;
 
-import java.util.concurrent.RejectedExecutionException;
-import java.util.concurrent.TimeUnit;
-
 import org.apache.catalina.Executor;
 import org.apache.catalina.LifecycleException;
 import org.apache.catalina.LifecycleState;
@@ -29,6 +26,18 @@ import org.apache.tomcat.util.threads.TaskQueue;
 import org.apache.tomcat.util.threads.TaskThreadFactory;
 import org.apache.tomcat.util.threads.ThreadPoolExecutor;
 
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.TimeUnit;
+
+/**
+ * 可调整线程池参数的线程执行者委托给 ThreadPoolExecutor 线程池执行，初始化时设置线程池大小和队列大小
+ *
+ * 初始化 ThreadPoolExecutor 、TaskQueue 和 TaskThreadFactory
+ *
+ * 实现容器生命周期方法 LifecycleMBeanBase
+ *
+ * 单一职责 ，由 StandardThreadExecutor 来组合起来
+ */
 public class StandardThreadExecutor extends LifecycleMBeanBase
         implements Executor, ResizableExecutor {
 

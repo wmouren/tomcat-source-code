@@ -16,32 +16,19 @@
  */
 package org.apache.catalina.core;
 
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.io.File;
-import java.util.Locale;
-import java.util.concurrent.atomic.AtomicReference;
-
-import org.apache.catalina.AccessLog;
-import org.apache.catalina.Container;
-import org.apache.catalina.ContainerEvent;
-import org.apache.catalina.ContainerListener;
-import org.apache.catalina.Context;
-import org.apache.catalina.Engine;
-import org.apache.catalina.Host;
-import org.apache.catalina.Lifecycle;
-import org.apache.catalina.LifecycleEvent;
-import org.apache.catalina.LifecycleException;
-import org.apache.catalina.LifecycleListener;
-import org.apache.catalina.Realm;
-import org.apache.catalina.Server;
-import org.apache.catalina.Service;
+import org.apache.catalina.*;
 import org.apache.catalina.connector.Request;
 import org.apache.catalina.connector.Response;
 import org.apache.catalina.realm.NullRealm;
 import org.apache.catalina.util.ServerInfo;
 import org.apache.juli.logging.Log;
 import org.apache.juli.logging.LogFactory;
+
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.io.File;
+import java.util.Locale;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Standard implementation of the <b>Engine</b> interface.  Each
@@ -235,6 +222,7 @@ public class StandardEngine extends ContainerBase implements Engine {
     protected void initInternal() throws LifecycleException {
         // Ensure that a Realm is present before any attempt is made to start
         // one. This will create the default NullRealm if necessary.
+        log.info("*********************》 Engine init");
         getRealm();
         super.initInternal();
     }

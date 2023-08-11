@@ -17,12 +17,6 @@
 
 package org.apache.catalina.util;
 
-import javax.management.InstanceNotFoundException;
-import javax.management.MBeanRegistrationException;
-import javax.management.MBeanServer;
-import javax.management.MalformedObjectNameException;
-import javax.management.ObjectName;
-
 import org.apache.catalina.Globals;
 import org.apache.catalina.JmxEnabled;
 import org.apache.catalina.LifecycleException;
@@ -31,6 +25,11 @@ import org.apache.juli.logging.LogFactory;
 import org.apache.tomcat.util.modeler.Registry;
 import org.apache.tomcat.util.res.StringManager;
 
+import javax.management.*;
+
+/**
+ * 功能性扩展 JMX MBean 描述一个可管理对象
+ */
 public abstract class LifecycleMBeanBase extends LifecycleBase
         implements JmxEnabled {
 

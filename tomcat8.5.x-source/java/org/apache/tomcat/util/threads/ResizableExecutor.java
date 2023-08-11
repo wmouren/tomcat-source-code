@@ -18,6 +18,9 @@ package org.apache.tomcat.util.threads;
 
 import java.util.concurrent.Executor;
 
+/**
+ * 线程执行器 实现类 StandardThreadExecutor
+ */
 public interface ResizableExecutor extends Executor {
 
     /**
