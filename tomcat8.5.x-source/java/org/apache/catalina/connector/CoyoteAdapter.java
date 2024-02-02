@@ -157,6 +157,7 @@ public class CoyoteAdapter implements Adapter {
                 req.getAttributes().remove(RequestDispatcher.ERROR_EXCEPTION);
                 ClassLoader oldCL = null;
                 try {
+                    // 获取当前 context 的 classloader 绑定到当前线程，将原有的 classloader 保存起来
                     oldCL = request.getContext().bind(false, null);
                     if (req.getReadListener() != null) {
                         req.getReadListener().onError(t);
@@ -165,6 +166,7 @@ public class CoyoteAdapter implements Adapter {
                         res.getWriteListener().onError(t);
                     }
                 } finally {
+                    // 处理完 context 的 classloader 后，将原有的 classloader 重新绑定到当前线程
                     request.getContext().unbind(false, oldCL);
                 }
                 if (t != null) {
@@ -291,6 +293,13 @@ public class CoyoteAdapter implements Adapter {
     }
 
 
+    /**
+     * 从网络层和应用层解耦分层点 由此进入到 catalina 容器中
+     * @param req The request object
+     * @param res The response object
+     *
+     * @throws Exception
+     */
     @Override
     public void service(org.apache.coyote.Request req, org.apache.coyote.Response res)
             throws Exception {
@@ -335,7 +344,7 @@ public class CoyoteAdapter implements Adapter {
                 request.setAsyncSupported(
                         connector.getService().getContainer().getPipeline().isAsyncSupported());
                 // Calling the container
-                // 调用容器的 Pipeline 执行请求
+                // 调用容器的 Pipeline 执行请求  从第一个阀门开始执行
                 connector.getService().getContainer().getPipeline().getFirst().invoke(
                         request, response);
             }
@@ -686,6 +695,7 @@ public class CoyoteAdapter implements Adapter {
 
         while (mapRequired) {
             // This will map the the latest version by default
+            // 处理uri 映射 获取对应的 Context 设置 mappingData 数据
             connector.getService().getMapper().map(serverName, decodedURI,
                     version, request.getMappingData());
 

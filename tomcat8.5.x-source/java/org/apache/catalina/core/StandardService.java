@@ -411,6 +411,7 @@ public class StandardService extends LifecycleMBeanBase implements Service {
         // Start our defined Container first
         if (engine != null) {
             synchronized (engine) {
+                // 启动业务容器
                 engine.start();
             }
         }
@@ -516,6 +517,8 @@ public class StandardService extends LifecycleMBeanBase implements Service {
     /**
      * Invoke a pre-startup initialization. This is used to allow connectors
      * to bind to restricted ports under Unix operating environments.
+     *
+     * 初始化时：先初始化内部业务处理容器，再初始化端口绑定。防止端口启动接收请求而业务容器未初始化完成
      */
     @Override
     protected void initInternal() throws LifecycleException {
@@ -531,6 +534,7 @@ public class StandardService extends LifecycleMBeanBase implements Service {
             if (executor instanceof JmxEnabled) {
                 ((JmxEnabled) executor).setDomain(getDomain());
             }
+            // 初始化线程池
             executor.init();
         }
 
@@ -541,6 +545,7 @@ public class StandardService extends LifecycleMBeanBase implements Service {
         synchronized (connectorsLock) {
             for (Connector connector : connectors) {
                 try {
+                    // 初始化连接器绑定端口
                     connector.init();
                 } catch (Exception e) {
                     String message = sm.getString(
@@ -555,6 +560,10 @@ public class StandardService extends LifecycleMBeanBase implements Service {
     }
 
 
+    /**
+     * 销毁时先 停止端口监听，再销毁业务容器  防止接收请求而业务容器已销毁
+     * @throws LifecycleException
+     */
     @Override
     protected void destroyInternal() throws LifecycleException {
         mapperListener.destroy();

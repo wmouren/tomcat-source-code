@@ -37,6 +37,11 @@ import java.util.concurrent.TimeUnit;
  * 实现容器生命周期方法 LifecycleMBeanBase
  *
  * 单一职责 ，由 StandardThreadExecutor 来组合起来
+ *
+ *
+ * StandardThreadExecutor 来实现一个生命周期来管理线程池的生命周期，实现一个 ResizableExecutor 接口来动态调整线程池的大小。
+ * 隐藏了线程池实现的细节，对外提供一个门面的接口，使得调用者不需要关心线程池的实现细节。定制化了线程池和任务队列来应对 tomcat 的 IO 密集型场景。
+ *
  */
 public class StandardThreadExecutor extends LifecycleMBeanBase
         implements Executor, ResizableExecutor {
@@ -125,6 +130,7 @@ public class StandardThreadExecutor extends LifecycleMBeanBase
     @Override
     protected void startInternal() throws LifecycleException {
 
+        // 创建任务队列 TaskQueue 和线程工厂 TaskThreadFactory ，并初始化线程池 ThreadPoolExecutor
         taskqueue = new TaskQueue(maxQueueSize);
         TaskThreadFactory tf = new TaskThreadFactory(namePrefix,daemon,getThreadPriority());
         executor = new ThreadPoolExecutor(getMinSpareThreads(), getMaxThreads(), maxIdleTime, TimeUnit.MILLISECONDS,taskqueue, tf);

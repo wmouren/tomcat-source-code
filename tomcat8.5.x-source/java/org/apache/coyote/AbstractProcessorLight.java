@@ -16,16 +16,16 @@
  */
 package org.apache.coyote;
 
-import java.io.IOException;
-import java.util.Iterator;
-import java.util.Set;
-import java.util.concurrent.CopyOnWriteArraySet;
-
 import org.apache.juli.logging.Log;
 import org.apache.tomcat.util.net.AbstractEndpoint.Handler.SocketState;
 import org.apache.tomcat.util.net.DispatchType;
 import org.apache.tomcat.util.net.SocketEvent;
 import org.apache.tomcat.util.net.SocketWrapperBase;
+
+import java.io.IOException;
+import java.util.Iterator;
+import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
  * This is a light-weight abstract processor implementation that is intended as
@@ -41,6 +41,7 @@ public abstract class AbstractProcessorLight implements Processor {
     public SocketState process(SocketWrapperBase<?> socketWrapper, SocketEvent status)
             throws IOException {
 
+        // 根据不同的事件类型，执行不同的处理逻辑
         SocketState state = SocketState.CLOSED;
         Iterator<DispatchType> dispatches = null;
         do {

@@ -16,6 +16,17 @@
  */
 package org.apache.tomcat.util.net;
 
+import org.apache.juli.logging.Log;
+import org.apache.juli.logging.LogFactory;
+import org.apache.tomcat.util.ExceptionUtils;
+import org.apache.tomcat.util.IntrospectionUtils;
+import org.apache.tomcat.util.collections.SynchronizedQueue;
+import org.apache.tomcat.util.collections.SynchronizedStack;
+import org.apache.tomcat.util.net.AbstractEndpoint.Handler.SocketState;
+import org.apache.tomcat.util.net.jsse.JSSESupport;
+
+import javax.net.ssl.SSLEngine;
+import javax.net.ssl.SSLSession;
 import java.io.EOFException;
 import java.io.File;
 import java.io.FileInputStream;
@@ -25,16 +36,7 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.nio.ByteBuffer;
-import java.nio.channels.CancelledKeyException;
-import java.nio.channels.Channel;
-import java.nio.channels.CompletionHandler;
-import java.nio.channels.FileChannel;
-import java.nio.channels.NetworkChannel;
-import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
-import java.nio.channels.ServerSocketChannel;
-import java.nio.channels.SocketChannel;
-import java.nio.channels.WritableByteChannel;
+import java.nio.channels.*;
 import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.concurrent.CountDownLatch;
@@ -42,18 +44,6 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
-
-import javax.net.ssl.SSLEngine;
-import javax.net.ssl.SSLSession;
-
-import org.apache.juli.logging.Log;
-import org.apache.juli.logging.LogFactory;
-import org.apache.tomcat.util.ExceptionUtils;
-import org.apache.tomcat.util.IntrospectionUtils;
-import org.apache.tomcat.util.collections.SynchronizedQueue;
-import org.apache.tomcat.util.collections.SynchronizedStack;
-import org.apache.tomcat.util.net.AbstractEndpoint.Handler.SocketState;
-import org.apache.tomcat.util.net.jsse.JSSESupport;
 
 /**
  * NIO tailored thread pool, providing the following services:
@@ -411,6 +401,7 @@ public class NioEndpoint extends AbstractJsseEndpoint<NioChannel> {
                         socketProperties.getAppReadBufSize(),
                         socketProperties.getAppWriteBufSize(),
                         socketProperties.getDirectBuffer());
+                // 判断是否是https请求
                 if (isSSLEnabled()) {
                     channel = new SecureNioChannel(socket, bufhandler, selectorPool, this);
                 } else {
@@ -420,6 +411,7 @@ public class NioEndpoint extends AbstractJsseEndpoint<NioChannel> {
                 channel.setIOChannel(socket);
                 channel.reset();
             }
+            // 将channel注册到poller中  进行事件轮询
             getPoller0().register(channel);
         } catch (Throwable t) {
             ExceptionUtils.handleThrowable(t);
@@ -451,6 +443,7 @@ public class NioEndpoint extends AbstractJsseEndpoint<NioChannel> {
     /**
      * The background thread that listens for incoming TCP/IP connections and
      * hands them off to an appropriate processor.
+     * 这个处理器是用来接收请求的，然后将请求交给poller处理
      */
     protected class Acceptor extends AbstractEndpoint.Acceptor {
 
@@ -479,6 +472,7 @@ public class NioEndpoint extends AbstractJsseEndpoint<NioChannel> {
 
                 try {
                     //if we have reached max connections, wait
+                    // 这里控制最大连接数 使用  LimitLatch 内部是使用 AQS 实现
                     countUpOrAwaitConnection();
 
                     SocketChannel socket = null;
@@ -505,7 +499,9 @@ public class NioEndpoint extends AbstractJsseEndpoint<NioChannel> {
                     if (running && !paused) {
                         // setSocketOptions() will hand the socket off to
                         // an appropriate processor if successful
+                        // 将socket交给poller处理
                         if (!setSocketOptions(socket)) {
+                            // 关闭socket 并减少连接数
                             closeSocket(socket);
                         }
                     } else {
@@ -736,6 +732,7 @@ public class NioEndpoint extends AbstractJsseEndpoint<NioChannel> {
          */
         public void register(final NioChannel socket) {
             socket.setPoller(this);
+            // 将socket 包装为 NioSocketWrapper
             NioSocketWrapper ka = new NioSocketWrapper(socket, NioEndpoint.this);
             socket.setSocketWrapper(ka);
             ka.setPoller(this);
@@ -746,6 +743,7 @@ public class NioEndpoint extends AbstractJsseEndpoint<NioChannel> {
             ka.setReadTimeout(getConnectionTimeout());
             ka.setWriteTimeout(getConnectionTimeout());
             PollerEvent r = eventCache.pop();
+            // 注册读事件
             ka.interestOps(SelectionKey.OP_READ);//this is what OP_REGISTER turns into.
             if ( r==null) r = new PollerEvent(socket,ka,OP_REGISTER);
             else r.reset(socket,ka,OP_REGISTER);

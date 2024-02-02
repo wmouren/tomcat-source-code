@@ -253,8 +253,11 @@ public final class Bootstrap {
 
         log.info("*********************》 Bootstrap init");
 
+        // 初始化类加载器
+        // 初始化 commonLoader、catalinaLoader、sharedLoader 默认只有 commonLoader，catalinaLoader、sharedLoader 需要在 catalina.properties 中配置
         initClassLoaders();
 
+        // 将当前线程的类加载器设置为 catalinaLoader 以便于后续的类加载
         Thread.currentThread().setContextClassLoader(catalinaLoader);
 
         SecurityClassLoad.securityClassLoad(catalinaLoader);
@@ -262,6 +265,8 @@ public final class Bootstrap {
         // Load our startup class and call its process() method
         if (log.isDebugEnabled())
             log.debug("Loading startup class");
+
+        // 使用 commonClassLoader 加载 Catalina 容器启动类 并将 sharedLoader（默认也是 commonClassLoader） 赋值给 Catalina ParentClassLoader
         Class<?> startupClass = catalinaLoader.loadClass("org.apache.catalina.startup.Catalina");
         Object startupInstance = startupClass.getConstructor().newInstance();
 
@@ -445,6 +450,11 @@ public final class Bootstrap {
                 // Don't set daemon until init() has completed
                 Bootstrap bootstrap = new Bootstrap();
                 try {
+                    /**
+                     * 1、初始化类加载器
+                     * 2、使用 commonClassLoader 加载 Catalina 容器启动类 并将 sharedLoader（默认也是 commonClassLoader） 赋值给 Catalina ParentClassLoader
+                     * 3、绑定当前线程的类加载器为 catalinaLoader
+                     */
                     bootstrap.init();
                 } catch (Throwable t) {
                     handleThrowable(t);
@@ -466,6 +476,8 @@ public final class Bootstrap {
                 command = args[args.length - 1];
             }
 
+            // 通过命令行参数来控制启动、停止、重启等操作，委托给 Catalina 容器；
+            // Bootstrap 只作为一个门面用于初始化一些参数和接收命令行参数。
             if (command.equals("startd")) {
                 args[args.length - 1] = "start";
                 daemon.load(args);

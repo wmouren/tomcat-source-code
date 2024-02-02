@@ -16,46 +16,7 @@
  */
 package org.apache.catalina.core;
 
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeSupport;
-import java.io.File;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.Callable;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-
-import javax.management.ObjectName;
-
-import org.apache.catalina.AccessLog;
-import org.apache.catalina.Cluster;
-import org.apache.catalina.Container;
-import org.apache.catalina.ContainerEvent;
-import org.apache.catalina.ContainerListener;
-import org.apache.catalina.Context;
-import org.apache.catalina.Engine;
-import org.apache.catalina.Globals;
-import org.apache.catalina.Host;
-import org.apache.catalina.Lifecycle;
-import org.apache.catalina.LifecycleException;
-import org.apache.catalina.LifecycleState;
-import org.apache.catalina.Loader;
-import org.apache.catalina.Pipeline;
-import org.apache.catalina.Realm;
-import org.apache.catalina.Valve;
-import org.apache.catalina.Wrapper;
+import org.apache.catalina.*;
 import org.apache.catalina.connector.Request;
 import org.apache.catalina.connector.Response;
 import org.apache.catalina.util.ContextName;
@@ -65,6 +26,21 @@ import org.apache.juli.logging.LogFactory;
 import org.apache.tomcat.util.ExceptionUtils;
 import org.apache.tomcat.util.MultiThrowable;
 import org.apache.tomcat.util.res.StringManager;
+
+import javax.management.ObjectName;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
+import java.io.File;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 
 /**
@@ -917,10 +893,13 @@ public abstract class ContainerBase extends LifecycleMBeanBase
             ((Lifecycle) realm).start();
         }
 
-        // Start our child containers, if any
+        // Start our child containers, if any、
+        // 使用线程池来启动子容器  Context、Wrapper、Host
+        // 其中 Context 不会调用 super.startInternal() 方法，由 Context 自己负责加载子容器，因为 Context 容器启动加载时需要切换类加载器
         Container children[] = findChildren();
         List<Future<Void>> results = new ArrayList<>();
         for (Container child : children) {
+            // 提交子容器启动任务
             results.add(startStopExecutor.submit(new StartChild(child)));
         }
 
@@ -944,6 +923,7 @@ public abstract class ContainerBase extends LifecycleMBeanBase
         }
 
         // Start the Valves in our pipeline (including the basic), if any
+        // 初始化业务处理管道 pipeline(valve->value->...)->pipeline(valve->value->...)
         if (pipeline instanceof Lifecycle) {
             ((Lifecycle) pipeline).start();
         }

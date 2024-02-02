@@ -4877,8 +4877,10 @@ public class StandardContext extends ContainerBase
         if (ok) {
             resourcesStart();
         }
-        /**
-         * 创建 app classLoader
+
+
+        /*
+         * 创建 WebAppClassLoader
          */
         if (getLoader() == null) {
             WebappLoader webappLoader = new WebappLoader();
@@ -4937,8 +4939,10 @@ public class StandardContext extends ContainerBase
         try {
             if (ok) {
                 // Start our subordinate components, if any
+                // Loader 实现类 WebappLoader
                 Loader loader = getLoader();
                 if (loader instanceof Lifecycle) {
+                    // 调用 start 方法创建当前应用的 WebAppClassLoader
                     ((Lifecycle) loader).start();
                 }
 
@@ -4960,6 +4964,8 @@ public class StandardContext extends ContainerBase
                 // By calling unbindThread and bindThread in a row, we setup the
                 // current Thread CCL to be the webapp classloader
                 unbindThread(oldCCL);
+                // 将当前线程的ContextClassLoader 返回设置给oldCCL 然后将应用的 WebClassLoader 设置为当前线程的 ContextClassLoader
+                // oldCCL 是 Common classLoader
                 oldCCL = bindThread();
 
                 // Initialize logger again. Other components might have used it
@@ -5079,7 +5085,8 @@ public class StandardContext extends ContainerBase
             mergeParameters();
 
             // Call ServletContainerInitializers
-            //调用了 ServletContainerInitializers
+            //调用了 ServletContainerInitializers 调用了 ServletContainerInitializer 的 onStartup 方法
+            // 加载通过编程式注册的 Servlet、Filter、Listener
             for (Map.Entry<ServletContainerInitializer, Set<Class<?>>> entry :
                 initializers.entrySet()) {
                 try {
@@ -5137,7 +5144,7 @@ public class StandardContext extends ContainerBase
             // Start ContainerBackgroundProcessor thread
             super.threadStart();
         } finally {
-            // Unbinding thread
+            // Unbinding thread  将当前线程的 ContextClassLoader 设置为 oldCCL 也就是 Common classLoader
             unbindThread(oldCCL);
         }
 

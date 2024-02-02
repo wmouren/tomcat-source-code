@@ -24,6 +24,14 @@ import org.apache.tomcat.util.net.SocketEvent;
  *
  * @author Remy Maucherat
  * @see ProtocolHandler
+ *
+ * endponit and protocol 与  servlet container 之间的适配器
+ *
+ * 分离了协议端口和业务服务之间的适配，使得协议端口和业务服务之间的解耦
+ *
+ * 进入 coyote-based servlet container 的入口点
+ *
+ * Adapter  应用程序逻辑和网络层解耦
  */
 public interface Adapter {
 

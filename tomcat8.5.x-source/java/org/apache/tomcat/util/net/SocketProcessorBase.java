@@ -18,6 +18,7 @@ package org.apache.tomcat.util.net;
 
 import java.util.Objects;
 
+// 策略模式：不同的线程模型有不同的实现 NIo、APR、BIO
 public abstract class SocketProcessorBase<S> implements Runnable {
 
     protected SocketWrapperBase<S> socketWrapper;

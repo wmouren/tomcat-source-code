@@ -16,6 +16,16 @@
  */
 package org.apache.coyote;
 
+import org.apache.tomcat.util.ExceptionUtils;
+import org.apache.tomcat.util.buf.ByteChunk;
+import org.apache.tomcat.util.buf.MessageBytes;
+import org.apache.tomcat.util.http.parser.Host;
+import org.apache.tomcat.util.log.UserDataHelper;
+import org.apache.tomcat.util.net.*;
+import org.apache.tomcat.util.net.AbstractEndpoint.Handler.SocketState;
+import org.apache.tomcat.util.res.StringManager;
+
+import javax.servlet.RequestDispatcher;
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.nio.ByteBuffer;
@@ -24,24 +34,12 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
-import javax.servlet.RequestDispatcher;
-
-import org.apache.tomcat.util.ExceptionUtils;
-import org.apache.tomcat.util.buf.ByteChunk;
-import org.apache.tomcat.util.buf.MessageBytes;
-import org.apache.tomcat.util.http.parser.Host;
-import org.apache.tomcat.util.log.UserDataHelper;
-import org.apache.tomcat.util.net.AbstractEndpoint;
-import org.apache.tomcat.util.net.AbstractEndpoint.Handler.SocketState;
-import org.apache.tomcat.util.net.DispatchType;
-import org.apache.tomcat.util.net.SSLSupport;
-import org.apache.tomcat.util.net.SocketEvent;
-import org.apache.tomcat.util.net.SocketWrapperBase;
-import org.apache.tomcat.util.res.StringManager;
-
 /**
  * Provides functionality and attributes common to all supported protocols
  * (currently HTTP and AJP) for processing a single request/response.
+ *
+ * 每个请求都会创建一个Processor，Processor是一个线程，用于处理请求；每个Processor都会绑定一个SocketWrapper，SocketWrapper是一个Socket的包装类，用于处理Socket的读写；
+ * 其中也包含一个 request 和 response 对象，用于处理请求和响应。
  */
 public abstract class AbstractProcessor extends AbstractProcessorLight implements ActionHook {
 
@@ -85,9 +83,11 @@ public abstract class AbstractProcessor extends AbstractProcessorLight implement
     protected AbstractProcessor(AbstractEndpoint<?> endpoint, Request coyoteRequest,
             Response coyoteResponse) {
         this.endpoint = endpoint;
+        // 异步状态机
         asyncStateMachine = new AsyncStateMachine(this);
         request = coyoteRequest;
         response = coyoteResponse;
+        // 将request和response相互关联；将request和response与Processor相互关联
         response.setHook(this);
         request.setResponse(response);
         request.setHook(this);

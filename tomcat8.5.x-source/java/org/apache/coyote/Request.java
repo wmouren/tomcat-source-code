@@ -16,15 +16,6 @@
  */
 package org.apache.coyote;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.nio.charset.Charset;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import javax.servlet.ReadListener;
-
 import org.apache.tomcat.util.buf.B2CConverter;
 import org.apache.tomcat.util.buf.ByteChunk;
 import org.apache.tomcat.util.buf.MessageBytes;
@@ -34,6 +25,14 @@ import org.apache.tomcat.util.http.Parameters;
 import org.apache.tomcat.util.http.ServerCookies;
 import org.apache.tomcat.util.net.ApplicationBufferHandler;
 import org.apache.tomcat.util.res.StringManager;
+
+import javax.servlet.ReadListener;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * This is a low-level, efficient representation of a server request. Most
@@ -64,6 +63,9 @@ import org.apache.tomcat.util.res.StringManager;
  */
 public final class Request {
 
+    /**
+     * coyote 的 request 是什么时候被创建的？
+     */
     private static final StringManager sm = StringManager.getManager(Request.class);
 
     // Expected maximum typical number of cookies per request.

@@ -16,6 +16,9 @@
  */
 package org.apache.tomcat.util.net;
 
+import org.apache.juli.logging.Log;
+import org.apache.juli.logging.LogFactory;
+
 import java.io.EOFException;
 import java.io.IOException;
 import java.net.SocketTimeoutException;
@@ -26,14 +29,17 @@ import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.juli.logging.Log;
-import org.apache.juli.logging.LogFactory;
-
 /**
  *
  * Thread safe non blocking selector pool
  * @version 1.0
  * @since 6.0
+ *
+ * SelectorPool is a pool of selectors, every thread that is going to use a Selector、
+ *
+ * Selector 池是一个选择器的池，每个线程都会使用一个选择器，这个选择器是从池中获取的，使用完后再放回池中
+ *
+ * 用来处理读写事件
  */
 
 public class NioSelectorPool {

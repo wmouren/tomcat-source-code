@@ -21,7 +21,7 @@
                    redirectPort="8443"/>
         <Connector port="8081" protocol="HTTP/1.1"
                    connectionTimeout="20000"
-                   redirectPort="8444"/>
+                   redirectPort="8444" />
         <Engine name="Catalina" defaultHost="localhost">
             <Realm className="org.apache.catalina.realm.LockOutRealm">
                 <Realm className="org.apache.catalina.realm.UserDatabaseRealm"
@@ -34,5 +34,6 @@
                        pattern="%h %l %u %t &quot;%r&quot; %s %b"/>
             </Host>
         </Engine>
+
     </Service>
 </Server>

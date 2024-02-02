@@ -41,6 +41,18 @@ import java.util.concurrent.*;
 /**
  * @param <S> The type for the sockets managed by this endpoint.
  *
+ * 一个 endpoint（端口）包含：
+ *          1、内部有一个强关联的一个 Handler 对象，用于处理 socket 的状态
+ *          2、BindState 用于标识当前端口的状态
+ *          3、Acceptor 用于接收 socket 连接 然后传递给 Handler（工作线程） 处理 类似 netty 的 bos 和worker
+ *           在 Tomcat 中，Acceptor 负责接收新的连接请求，并将这些请求传递给 Poller。Poller 则负责处理这些连接，包括读取数据、写入数据等。
+ *           在 Netty 中，BossGroup 负责接收新的连接请求，然后将这些请求传递给 WorkerGroup。WorkerGroup 则负责处理这些连接，包括读取数据、写入数据等。
+ *           这两种设计模式都使用了 Reactor 模式，即使用一个或多个线程接收新的连接请求，然后将这些请求分发给其他线程进行处理。这种模式可以有效地处理大量并发连接，提高服务器的性能。
+ *
+ *  网络层I/O 端口           适配器           业务层容器
+ *  endpoint         <->   Adapter   <->    catalina
+ *
+ *  Adapter 使用适配器模式，将网络层和业务层解耦，使得网络层和业务层可以独立演化。
  * @author Mladen Turk
  * @author Remy Maucherat
  */
@@ -167,6 +179,8 @@ public abstract class AbstractEndpoint<S> {
 
     /**
      * counter for nr of connections handled by an endpoint
+     *
+     * 使用 cas 实现的一个线程安全的计数器  限制最大连接数
      */
     private volatile LimitLatch connectionLimitLatch = null;
 
@@ -185,6 +199,9 @@ public abstract class AbstractEndpoint<S> {
 
     /**
      * Cache for SocketProcessor objects
+     * 使用 Synchronized 实现的一个线程安全的 stack 集合，
+     * 在一个Web服务器中，为每个请求创建一个线程，然后这些线程需要共享一个栈来存储数据。在这种情况下，SynchronizedStack就非常适用
+     *
      */
     protected SynchronizedStack<SocketProcessorBase<S>> processorCache;
 
@@ -1058,24 +1075,29 @@ public abstract class AbstractEndpoint<S> {
      *
      * @return if processing was triggered successfully
      */
+    // 按照不同的 SocketEvent 事件处理 socket 请求
     public boolean processSocket(SocketWrapperBase<S> socketWrapper,
             SocketEvent event, boolean dispatch) {
         try {
             if (socketWrapper == null) {
                 return false;
             }
+            // 处理 socket 任务
             SocketProcessorBase<S> sc = processorCache.pop();
             if (sc == null) {
                 sc = createSocketProcessor(socketWrapper, event);
             } else {
+                // 对象复用 防止频繁创建对象，造成 gc 压力
                 sc.reset(socketWrapper, event);
             }
+            // 获取线程池处理
             Executor executor = getExecutor();
             if (dispatch && executor != null) {
                 executor.execute(sc);
             } else {
                 sc.run();
             }
+            // 线程池拒绝处理
         } catch (RejectedExecutionException ree) {
             getLog().warn(sm.getString("endpoint.executor.fail", socketWrapper) , ree);
             return false;
@@ -1110,6 +1132,7 @@ public abstract class AbstractEndpoint<S> {
 
     public void init() throws Exception {
         if (bindOnInit) {
+            // 绑定端口
             bind();
             bindState = BindState.BOUND_ON_INIT;
         }
