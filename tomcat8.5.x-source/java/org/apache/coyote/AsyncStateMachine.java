@@ -16,14 +16,14 @@
  */
 package org.apache.coyote;
 
-import java.security.AccessController;
-import java.security.PrivilegedAction;
-import java.util.concurrent.atomic.AtomicLong;
-
 import org.apache.tomcat.util.net.AbstractEndpoint.Handler.SocketState;
 import org.apache.tomcat.util.res.StringManager;
 import org.apache.tomcat.util.security.PrivilegedGetTccl;
 import org.apache.tomcat.util.security.PrivilegedSetTccl;
+
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Manages the state transitions for async requests.
@@ -117,6 +117,26 @@ import org.apache.tomcat.util.security.PrivilegedSetTccl;
  *        * All transitions may happen on either the Servlet.service() thread (ST) or on any
  *          other thread (OT) unless explicitly marked.
  * </pre>
+ */
+
+/**
+ * `AsyncStateMachine`是一个状态机的实现，它用于管理异步请求的状态转换。状态机是一种行为设计模式，它可以在不同的状态之间进行转换，并根据当前状态来决定如何响应外部事件。
+ *
+ * 设计思想：
+ * `AsyncStateMachine`中定义了一系列的状态，如`DISPATCHED`、`STARTING`、`STARTED`等，以及这些状态之间的转换规则。
+ * 每个状态都对应了一种特定的系统状态，每个状态转换都对应了一个特定的系统操作。这种设计使得系统的行为可以通过状态机的状态和状态转换来清晰地表示出来。
+ *
+ * 优点：
+ * 1. 易于理解：状态机模型清晰地表示了系统的各种状态以及状态之间的转换关系，使得系统的行为易于理解。
+ * 2. 易于维护：当需要修改系统行为时，只需要修改相应的状态或状态转换即可，无需修改大量的代码。
+ * 3. 灵活性：状态机模型可以很容易地添加新的状态和状态转换，以支持新的功能。
+ *
+ * 缺点：
+ * 1. 状态过多：如果系统的行为非常复杂，可能会导致状态机有大量的状态和状态转换，使得状态机变得复杂难以管理。
+ * 2. 状态转换逻辑分散：每个状态转换的逻辑可能分散在代码的不同部分，这可能会使得代码难以阅读和维护。
+ *
+ * 在哪种情况下可以使用类似的设计：
+ * 当你的系统有明确的状态和状态转换，且状态之间的转换可以通过一些明确的规则来决定时，可以使用状态机模式。例如，网络协议、硬件设备控制、游戏编程等场景都可以使用状态机模式。
  */
 public class AsyncStateMachine {
 

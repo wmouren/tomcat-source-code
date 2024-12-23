@@ -370,6 +370,26 @@ public abstract class AbstractProcessor extends AbstractProcessorLight implement
     }
 
 
+    /**
+     *  `AbstractProcessor#action`方法是一个典型的命令模式的实现。命令模式是一种行为设计模式，它将请求或操作封装为一个对象，从而使用户可以使用不同的请求参数化其他对象，并且可以将请求存储、传递和调用。
+     *
+     * 设计思想：
+     * 在`AbstractProcessor#action`方法中，`ActionCode`枚举类型的动作代码作为命令，而`Object`类型的参数则作为命令的参数。
+     *  这个方法根据传入的`ActionCode`，执行相应的操作。这种设计使得`AbstractProcessor`类能够以一种灵活和可扩展的方式处理各种不同的动作请求，而无需为每种动作都定义一个单独的方法。
+     *
+     * 优点：
+     * 1. 灵活性：可以在运行时动态地改变命令，从而改变行为。
+     * 2. 扩展性：可以很容易地添加新的命令，而不需要修改现有的代码。
+     * 3. 解耦：命令的发出者和执行者是解耦的，它们之间没有直接的引用关系。
+     *
+     * 缺点：
+     * 1. 命令的数量可能会很大，每个命令都需要一个具体的类来实现，这会导致系统有很多的命令类，增加了系统的复杂性。
+     * 2. 命令处理的逻辑分散在各个命令类中，维护起来可能会比较困难。
+     *
+     * 在哪种情况下可以使用类似的设计：
+     * 当你需要参数化对象的行为，或者需要在不同的时间点记录、执行或撤销操作时，可以使用命令模式。例如，GUI按钮和菜单项、线程池、操作历史（撤销/重做）等场景都可以使用命令模式。
+     *
+     */
     @Override
     public final void action(ActionCode actionCode, Object param) {
         switch (actionCode) {

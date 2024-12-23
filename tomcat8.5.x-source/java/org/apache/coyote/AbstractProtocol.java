@@ -40,6 +40,30 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
+/**
+ * http 应用层协议抽象 ---》 处理者为 AbstractProcessor、
+ * 这种设计思想是将协议的处理和业务的处理分离开来，这样可以更好的解耦，提高系统的可扩展性
+ * @param <S>
+ *
+ *
+ * `AbstractProtocol`和`AbstractProcessor`是Apache Tomcat中的两个关键抽象类，它们在Tomcat的请求处理流程中起着重要的作用。
+ *
+ * `AbstractProtocol`类主要负责管理网络连接和协议的具体实现。
+ * 它包含了一些通用的网络连接处理逻辑，例如监听端口、接受新的连接请求、管理连接池等。`AbstractProtocol`类也定义了一些抽象方法，这些方法需要由具体的协议实现类（如HTTP、AJP等）来实现。
+ *
+ * `AbstractProcessor`类则主要负责处理单个请求/响应对。
+ * 每当`AbstractProtocol`接收到一个新的连接请求时，它会创建一个`AbstractProcessor`实例来处理这个请求。`AbstractProcessor`类包含了一些通用的请求处理逻辑，
+ * 例如解析请求头、处理请求体、发送响应等。`AbstractProcessor`类也定义了一些抽象方法，这些方法需要由具体的协议处理器类来实现。
+ *
+ * 设计思想上，`AbstractProtocol`和`AbstractProcessor`的关系体现了面向对象设计原则中的“单一职责原则”和“开闭原则”：
+ *
+ * - 单一职责原则：`AbstractProtocol`负责管理网络连接和协议的具体实现，而`AbstractProcessor`负责处理单个请求/响应对。这样，每个类都只负责一项任务，使得代码更易于理解和维护。
+ *
+ * - 开闭原则：`AbstractProtocol`和`AbstractProcessor`都是抽象类，它们定义了一些抽象方法，
+ * 这些方法需要由具体的协议实现类和协议处理器类来实现。这样，当需要支持新的协议或者改变请求处理逻辑时，只需要添加新的实现类，而无需修改`AbstractProtocol`和`AbstractProcessor`的代码。
+ *
+ * 总的来说，`AbstractProtocol`和`AbstractProcessor`之间的关系和设计思想体现了Tomcat的模块化和可扩展性，使得Tomcat能够支持多种协议，并且可以灵活地处理各种请求。
+ */
 public abstract class AbstractProtocol<S> implements ProtocolHandler,
         MBeanRegistration {
 

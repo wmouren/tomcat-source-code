@@ -630,6 +630,8 @@ public class CoyoteAdapter implements Adapter {
             decodedURI.duplicate(undecodedURI);
 
             // Parse (and strip out) the path parameters
+            // 解析路径参数  类似 http://example.com/path;jsessionid=1234?param=value 通常用于在无法使用cookie的情况下跟踪用户的会话
+            // 需要注意的是，路径参数的使用并不广泛，而且在某些情况下可能会导致问题。
             parsePathParameters(req, request);
 
             // URI decoding
@@ -695,7 +697,8 @@ public class CoyoteAdapter implements Adapter {
 
         while (mapRequired) {
             // This will map the the latest version by default
-            // 处理uri 映射 获取对应的 Context 设置 mappingData 数据
+            //
+            // TODO 重要步骤： 处理 uri 映射 获取对应的 Context 设置 mappingData 数据
             connector.getService().getMapper().map(serverName, decodedURI,
                     version, request.getMappingData());
 

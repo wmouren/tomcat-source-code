@@ -84,6 +84,15 @@ public class NioEndpoint extends AbstractJsseEndpoint<NioChannel> {
      */
     private volatile CountDownLatch stopLatch = null;
 
+
+    /**
+     * PollerEvent 和 NioChannel 在 SynchronizedStack 中是被重复使用的。
+     * SynchronizedStack 是一个线程安全的栈，它被用来存储和复用 PollerEvent 和 NioChannel 对象。
+     * 在 NioEndpoint 类中，eventCache 和 nioChannels 都是 SynchronizedStack 类型的变量。eventCache 用于存储 PollerEvent 对象，nioChannels 用于存储 NioChannel 对象。
+     * 当需要一个新的 PollerEvent 或 NioChannel 对象时，会首先尝试从对应的 SynchronizedStack 中弹出一个已存在的对象。如果栈为空（即没有可复用的对象），
+     * 则会创建一个新的对象。当 PollerEvent 或 NioChannel 对象不再使用时，
+     * 它们会被推入到对应的 SynchronizedStack 中，以便后续复用。  这种设计可以减少对象的创建和销毁，提高系统的性能和稳定性，同时减少垃圾收集器的压力。
+     */
     /**
      * Cache for poller events
      */
@@ -395,6 +404,7 @@ public class NioEndpoint extends AbstractJsseEndpoint<NioChannel> {
             Socket sock = socket.socket();
             socketProperties.setProperties(sock);
 
+
             NioChannel channel = nioChannels.pop();
             if (channel == null) {
                 SocketBufferHandler bufhandler = new SocketBufferHandler(
@@ -431,6 +441,7 @@ public class NioEndpoint extends AbstractJsseEndpoint<NioChannel> {
     protected Log getLog() {
         return log;
     }
+
 
 
     @Override
@@ -857,6 +868,7 @@ public class NioEndpoint extends AbstractJsseEndpoint<NioChannel> {
                     NioSocketWrapper attachment = (NioSocketWrapper)sk.attachment();
                     // Attachment may be null if another thread has called
                     // cancelledKey()
+
                     if (attachment == null) {
                         iterator.remove();
                     } else {

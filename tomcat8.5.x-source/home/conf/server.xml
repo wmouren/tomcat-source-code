@@ -27,6 +27,8 @@
                 <Realm className="org.apache.catalina.realm.UserDatabaseRealm"
                        resourceName="UserDatabase"/>
             </Realm>
+            <!--  一个请求进来，交给 Mapper 来匹配映射到哪个 host 得 context 下，
+              host  appBase 配置得文件夹下 每个文件夹相当于一个 Context         -->
             <Host name="localhost" appBase="webapps"
                   unpackWARs="true" autoDeploy="true" >
                 <Valve className="org.apache.catalina.valves.AccessLogValve" directory="logs"

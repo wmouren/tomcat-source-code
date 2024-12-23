@@ -55,6 +55,8 @@ import java.util.concurrent.*;
  *  Adapter 使用适配器模式，将网络层和业务层解耦，使得网络层和业务层可以独立演化。
  * @author Mladen Turk
  * @author Remy Maucherat
+ *
+ * TCP  传输层协议解析抽象 ---》处理者 SocketProcessorBase  
  */
 public abstract class AbstractEndpoint<S> {
 
